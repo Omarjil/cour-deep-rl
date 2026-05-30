@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Cours DRL – Deep Reinforcement Learning</title>
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== THÈME CLAIR (par défaut) ===== */
+body.theme-light {
+  --c-bg: #ffffff;
+  --c-bg2: #f8fafc;
+  --c-bg3: #f1f5f9;
+  --c-text: #0f172a;
+  --c-muted: #334155;
+  --c-border: #e2e8f0;
+  --c-accent: #1e40af;
+  --c-accent2: #0284c7;
+  --c-green: #166534;
+  --c-amber: #b45309;
+  --c-red: #b91c1c;
+  --c-purple: #6b21a5;
+}
+
+/* ===== THÈME SOMBRE ===== */
+body.theme-dark {
+  --c-bg: #0f172a;
+  --c-bg2: #1e293b;
+  --c-bg3: #334155;
+  --c-text: #f1f5f9;
+  --c-muted: #cbd5e1;
+  --c-border: #334155;
+  --c-accent: #818cf8;
+  --c-accent2: #38bdf8;
+  --c-green: #4ade80;
+  --c-amber: #fbbf24;
+  --c-red: #f87171;
+  --c-purple: #c084fc;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-size: 15px;
+  line-height: 1.6;
+  transition: background 0.2s, color 0.2s;
+}
+
+.app {
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  min-height: 600px;
+  width: 100%;
+}
+
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--c-border);
+  padding: 20px 0;
+  overflow-y: auto;
+  max-height: 700px;
+  position: sticky;
+  top: 0;
+  background: var(--c-bg2);
+  display: flex;
+  flex-direction: column;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  padding: 28px 32px;
+  overflow-y: auto;
+  max-height: 640px;
+}
+
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: var(--c-muted);
+  padding: 0 16px 12px;
+  text-transform: uppercase;
+}
+
+/* Switch de thème */
+.theme-switch {
+  display: flex;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: 12px;
+}
+.theme-btn {
+  flex: 1;
+  padding: 6px 12px;
+  border-radius: 30px;
+  border: 1px solid var(--c-border);
+  background: var(--c-bg);
+  color: var(--c-muted);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.theme-btn:hover {
+  background: var(--c-accent);
+  color: white;
+  border-color: var(--c-accent);
+}
+.theme-btn.active {
+  background: var(--c-accent);
+  color: white;
+  border-color: var(--c-accent);
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  border-radius: 8px;
+  margin: 2px 8px;
+  font-size: 14px;
+  color: var(--c-muted);
+  transition: all 0.2s;
+  background: none;
+  width: calc(100% - 16px);
+  text-align: left;
+  font-weight: 500;
+}
+.nav-item:hover {
+  background: var(--c-bg3);
+  color: var(--c-text);
+}
+.nav-item.active {
+  background: rgba(30, 64, 175, 0.12);
+  color: var(--c-accent);
+}
+body.theme-dark .nav-item.active {
+  background: rgba(129, 140, 248, 0.15);
+}
+.nav-num {
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--c-bg3);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.nav-item.active .nav-num {
+  background: var(--c-accent);
+  color: white;
+}
+
+.progress-bar {
+  height: 3px;
+  background: var(--c-bg3);
+  margin: 8px 16px 20px;
+  border-radius: 4px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--c-accent), var(--c-accent2));
+  border-radius: 4px;
+  transition: width 0.3s;
+}
+
+.section {
+  display: none;
+}
+.section.active {
+  display: block;
+}
+
+.chapter-header {
+  margin-bottom: 28px;
+}
+.chapter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--c-accent);
+  background: rgba(30, 64, 175, 0.1);
+  padding: 4px 14px;
+  border-radius: 20px;
+  margin-bottom: 12px;
+}
+body.theme-dark .chapter-tag {
+  background: rgba(129, 140, 248, 0.15);
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+.chapter-subtitle {
+  font-size: 16px;
+  color: var(--c-muted);
+  line-height: 1.6;
+  border-left: 3px solid var(--c-accent2);
+  padding-left: 16px;
+  margin-top: 8px;
+}
+h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 32px 0 12px;
+  color: var(--c-text);
+  border-bottom: 1px solid var(--c-border);
+  padding-bottom: 4px;
+}
+h3 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 24px 0 8px;
+  color: var(--c-accent2);
+}
+p {
+  margin-bottom: 16px;
+}
+.lead {
+  font-size: 17px;
+  color: var(--c-muted);
+  margin-bottom: 20px;
+  line-height: 1.7;
+  background: var(--c-bg2);
+  padding: 16px 20px;
+  border-radius: 16px;
+}
+.callout {
+  border-radius: 14px;
+  padding: 16px 20px;
+  margin: 24px 0;
+  border-left: 4px solid;
+}
+.callout-info {
+  background: rgba(2, 132, 199, 0.08);
+  border-color: var(--c-accent2);
+}
+.callout-tip {
+  background: rgba(22, 101, 52, 0.08);
+  border-color: var(--c-green);
+}
+.callout-warn {
+  background: rgba(180, 83, 9, 0.08);
+  border-color: var(--c-amber);
+}
+.callout-title {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+.callout p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.formula-box {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin: 24px 0;
+  text-align: center;
+}
+.formula {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  color: var(--c-accent);
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+code {
+  font-family: monospace;
+  font-size: 13px;
+  background: var(--c-bg3);
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: var(--c-purple);
+}
+.algo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 24px 0;
+}
+.algo-card {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  padding: 18px;
+}
+.algo-card h4 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--c-accent);
+}
+.algo-card p {
+  font-size: 14px;
+  color: var(--c-muted);
+  margin: 0;
+}
+.table-wrap {
+  overflow-x: auto;
+  margin: 24px 0;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+th {
+  background: var(--c-bg2);
+  padding: 12px 14px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid var(--c-border);
+}
+td {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--c-border);
+  color: var(--c-muted);
+}
+.nav-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--c-border);
+}
+.nav-btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--c-border);
+  background: var(--c-bg);
+  color: var(--c-muted);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.nav-btn:hover {
+  background: var(--c-accent);
+  color: white;
+  border-color: var(--c-accent);
+}
+.section-info {
+  font-size: 13px;
+  color: var(--c-muted);
+}
+.badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 30px;
+  margin-right: 6px;
+}
+.badge-blue {
+  background: rgba(2, 132, 199, 0.15);
+  color: #0284c7;
+}
+body.theme-dark .badge-blue {
+  background: rgba(56, 189, 248, 0.2);
+  color: #7dd3fc;
+}
+.badge-purple {
+  background: rgba(107, 33, 165, 0.15);
+  color: #8b5cf6;
+}
+.badge-green {
+  background: rgba(22, 101, 52, 0.15);
+  color: #166534;
+}
+body.theme-dark .badge-green {
+  background: rgba(74, 222, 128, 0.2);
+  color: #86efac;
+}
+.badge-amber {
+  background: rgba(180, 83, 9, 0.15);
+  color: #b45309;
+}
+.diagram {
+  background: var(--c-bg2);
+  border: 1px solid var(--c-border);
+  border-radius: 16px;
+  padding: 16px;
+  margin: 24px 0;
+}
+.story {
+  background: linear-gradient(135deg, rgba(30, 64, 175, 0.05), rgba(2, 132, 199, 0.05));
+  border-radius: 20px;
+  padding: 24px;
+  margin: 32px 0;
+  border: 1px solid rgba(30, 64, 175, 0.2);
+}
+body.theme-dark .story {
+  background: linear-gradient(135deg, rgba(129, 140, 248, 0.08), rgba(56, 189, 248, 0.08));
+  border-color: rgba(129, 140, 248, 0.3);
+}
+.story p:last-child {
+  margin-bottom: 0;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+</style>
+</head>
+<body class="theme-light">
+<div class="app">
+<div class="sidebar">
+  <div class="theme-switch">
+    <button class="theme-btn" id="btn-light">White</button>
+    <button class="theme-btn" id="btn-dark">Dark</button>
+  </div>
+  <div class="sidebar-title">Chapitre 5 - Deep RL</div>
+  <div class="progress-bar"><div class="progress-fill" id="prog" style="width:12%"></div></div>
+  <button class="nav-item active" onclick="goTo(0)" id="nav0"><span class="nav-num">1</span>Pourquoi le Deep RL ?</button>
+  <button class="nav-item" onclick="goTo(1)" id="nav1"><span class="nav-num">2</span>DQN : le pionnier</button>
+  <button class="nav-item" onclick="goTo(2)" id="nav2"><span class="nav-num">3</span>Les deux astuces magiques</button>
+  <button class="nav-item" onclick="goTo(3)" id="nav3"><span class="nav-num">4</span>Algorithmes modernes</button>
+  <button class="nav-item" onclick="goTo(4)" id="nav4"><span class="nav-num">5</span>Double, Dueling & PER</button>
+  <button class="nav-item" onclick="goTo(5)" id="nav5"><span class="nav-num">6</span>Policy Gradient & Actor-Critic</button>
+  <button class="nav-item" onclick="goTo(6)" id="nav6"><span class="nav-num">7</span>PPO & TRPO – état de l'art</button>
+</div>
+
+<div class="main" id="main">
+
+<!-- SECTION 1 : INTRODUCTION -->
+<div class="section active" id="s0">
+  <div class="chapter-header">
+    <div class="chapter-tag">Objectif : comprendre le besoin du deep learning en RL</div>
+    <h1>Deep Reinforcement Learning : quand la mémoire ne suffit plus</h1>
+    <p class="chapter-subtitle">Souvenez-vous du Q-learning classique : une table pour chaque état. Mais que faire quand il y a des milliards d'états ? Les pixels d'un jeu vidéo, par exemple...</p>
+  </div>
+  <div class="story">
+    <p><strong>Contexte historique</strong> : En 2013, une équipe de DeepMind a branché un réseau de neurones sur un agent RL. Ils lui ont fourni directement les pixels de jeux Atari. Sans aucune connaissance des règles, l'agent a appris à jouer mieux que les humains. Comment ? En remplaçant la Q-table par un réseau de neurones profond.</p>
+  </div>
+  <h2>Pourquoi ne peut-on plus utiliser une table ?</h2>
+  <p>Imaginez devoir mémoriser chaque image de chaque niveau d'un jeu vidéo. Avec une image de 84x84 pixels en niveaux de gris, le nombre d'états possibles est astronomique. Une table est impossible. Un réseau de neurones, lui, va généraliser : il verra deux images similaires et leur donnera des valeurs proches.</p>
+  <div class="callout callout-tip">
+    <div class="callout-title">Analogie</div>
+    <p>C'est comme apprendre à reconnaître des chats : vous n'avez pas besoin de mémoriser chaque photo de chat une par une. Votre cerveau extrait des motifs (oreilles pointues, moustaches...). Le réseau de neurones fait pareil : il apprend des représentations utiles à partir des pixels.</p>
+  </div>
+  <h2>Rappel du cadre MDP</h2>
+  <p>Un agent observe un état s, choisit une action a, obtient une récompense r et passe à l'état suivant s'. L'objectif est de maximiser la somme des récompenses futures actualisées.</p>
+  <div class="formula-box">
+    <div class="formula">G_t = r_{t+1} + gamma * r_{t+2} + gamma^2 * r_{t+3} + ...</div>
+    <div class="formula-label">gamma proche de 0 : agent myope ; gamma proche de 1 : agent prévoyant</div>
+  </div>
+  <div class="callout callout-info">
+    <div class="callout-title">Ce qu'il faut retenir</div>
+    <p>Le Deep RL = RL classique + réseaux de neurones. Les neurones remplacent les tables, mais il faut résoudre deux problèmes majeurs : l'instabilité et la corrélation. Les sections suivantes montrent comment DQN les a résolus.</p>
+  </div>
+  <div class="nav-footer"><button class="nav-btn" onclick="next()">Suivant →</button><span class="section-info">Section 1 / 7</span></div>
+</div>
+
+<!-- SECTION 2 : DQN -->
+<div class="section" id="s1">
+  <div class="chapter-header">
+    <div class="chapter-tag">Deep Q-Network</div>
+    <h1>DQN : le fondateur des méthodes modernes</h1>
+    <p class="chapter-subtitle">Cet algorithme a marqué l'histoire : un seul réseau, une mémoire, et il joue à Breakout comme un professionnel.</p>
+  </div>
+  <p>Le DQN est simplement un Q-learning où la fonction Q est approximée par un réseau de neurones. Au lieu d'écrire Q[état][action], on écrit Q_reseau(état, action).</p>
+  <div class="diagram">
+    <svg viewBox="0 0 500 140" width="100%">
+      <rect x="20" y="40" width="100" height="60" rx="10" fill="rgba(2,132,199,.15)"/>
+      <text x="70" y="70" text-anchor="middle" font-size="12" fill="var(--c-text)">État s</text>
+      <text x="70" y="88" text-anchor="middle" font-size="9" fill="var(--c-muted)">(images)</text>
+      <line x1="120" y1="70" x2="160" y2="70" stroke="var(--c-accent)" stroke-width="2" marker-end="url(#arrow)"/>
+      <rect x="160" y="20" width="150" height="100" rx="12" fill="rgba(30,64,175,.1)"/>
+      <text x="235" y="50" text-anchor="middle" font-size="12" font-weight="600" fill="var(--c-text)">Réseau de neurones</text>
+      <text x="235" y="70" text-anchor="middle" font-size="10" fill="var(--c-muted)">(convolutions + dense)</text>
+      <text x="235" y="90" text-anchor="middle" font-size="10" fill="var(--c-muted)">Paramètres theta</text>
+      <line x1="310" y1="70" x2="350" y2="70" stroke="var(--c-accent)" stroke-width="2" marker-end="url(#arrow)"/>
+      <rect x="350" y="40" width="120" height="60" rx="10" fill="rgba(22,101,52,.15)"/>
+      <text x="410" y="65" text-anchor="middle" font-size="11" fill="var(--c-text)">Q(s, gauche)</text>
+      <text x="410" y="82" text-anchor="middle" font-size="11" fill="var(--c-text)">Q(s, droite) ...</text>
+      <defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M2 1L8 5L2 9" fill="none" stroke="currentColor" stroke-width="1.5"/></marker></defs>
+    </svg>
+  </div>
+  <h2>L'algorithme en trois étapes</h2>
+  <ul>
+    <li><strong>Jouer</strong> : l'agent observe l'état, choisit une action au hasard (exploration) ou celle qui semble la meilleure (exploitation).</li>
+    <li><strong>Mémoriser</strong> : il stocke l'expérience (état, action, récompense, état suivant) dans une mémoire appelée Replay Buffer.</li>
+    <li><strong>Apprendre</strong> : périodiquement, il pioche au hasard des souvenirs dans sa mémoire et met à jour son réseau pour mieux prédire la récompense future.</li>
+  </ul>
+  <div class="callout callout-warn">
+    <div class="callout-title">Problème sous-jacent</div>
+    <p>Si on apprend sur des séquences d'images trop corrélées, le réseau devient biaisé. De plus, si la cible change à chaque mise à jour, l'apprentissage diverge. D'où les deux astuces présentées dans la section suivante.</p>
+  </div>
+  <div class="nav-footer"><button class="nav-btn" onclick="prev()">← Précédent</button><button class="nav-btn" onclick="next()">Suivant →</button><span class="section-info">Section 2 / 7</span></div>
+</div>
+
+<!-- SECTION 3 : OPTIMISATIONS DQN -->
+<div class="section" id="s2">
+  <div class="chapter-header">
+    <div class="chapter-tag">Stabilisation de l'apprentissage</div>
+    <h1>Replay Buffer & Target Network : la stabilité retrouvée</h1>
+    <p class="chapter-subtitle">Deux idées simples mais cruciales qui rendent l'apprentissage profond par renforcement possible.</p>
+  </div>
+  <h2>1. Experience Replay – briser les corrélations</h2>
+  <p>Au lieu d'apprendre séquentiellement (état 1, puis état 2, puis état 3...), l'agent stocke toutes ses transitions dans un buffer circulaire. Quand il veut apprendre, il pioche aléatoirement un mini-batch. Cela casse la dépendance temporelle et réutilise chaque expérience plusieurs fois.</p>
+  <div class="callout callout-tip">
+    <div class="callout-title">Pourquoi efficace ?</div>
+    <p>C'est comme réviser un examen en mélangeant les chapitres, plutôt que de relire le cours dans l'ordre. Les connexions sont plus solides et la généralisation meilleure.</p>
+  </div>
+  <h2>2. Target Network – une cible stable</h2>
+  <p>En Q-learning classique, la cible utilise le même réseau qui change à chaque mise à jour. C'est viser une cible mouvante : très instable. La solution : un deuxième réseau, identique au début, mais qu'on gèle pendant plusieurs mises à jour. On le synchronise périodiquement (toutes les 1000 ou 5000 étapes). La cible devient stable, l'apprentissage devient lisse.</p>
+  <div class="formula-box">
+    <div class="formula">Loss = E[ (r + gamma * max Q_target(s',a') - Q_online(s,a))^2 ]</div>
+    <div class="formula-label">Q_target est figé, Q_online est celui qu'on entraîne</div>
+  </div>
+  <div class="nav-footer"><button class="nav-btn" onclick="prev()">← Précédent</button><button class="nav-btn" onclick="next()">Suivant →</button><span class="section-info">Section 3 / 7</span></div>
+</div>
+
+<!-- SECTION 4 : PANORAMA DES ALGORITHMES -->
+<div class="section" id="s3">
+  <div class="chapter-header">
+    <div class="chapter-tag">Cartographie des méthodes</div>
+    <h1>Au-delà de DQN : un éventail d'algorithmes</h1>
+    <p class="chapter-subtitle">Value-based, Policy-based, Actor-Critic... chaque famille a ses forces et ses domaines de prédilection.</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <tr><th>Algorithme</th><th>Espace d'actions</th><th>Famille</th><th>Idée principale</th></tr>
+      <tr><td><span class="badge badge-blue">DQN</span></td><td>Discret</td><td>Value-based</td><td>Réseau + replay + target</td></tr>
+      <tr><td><span class="badge badge-blue">Double DQN</span></td><td>Discret</td><td>Value-based</td><td>Corrige la sur-estimation</td></tr>
+      <tr><td><span class="badge badge-amber">REINFORCE</span></td><td>Discret/Continu</td><td>Policy-based</td><td>Monte Carlo, simple mais variance élevée</td></tr>
+      <tr><td><span class="badge badge-green">A2C / A3C</span></td><td>Discret/Continu</td><td>Actor-Critic</td><td>Parallélisme + avantage</td></tr>
+      <tr><td><span class="badge badge-purple">PPO</span></td><td>Discret/Continu</td><td>Actor-Critic</td><td>Clipping pour rester stable</td></tr>
+      <tr><td><span class="badge badge-purple">SAC</span></td><td>Continu</td><td>Actor-Critic off-policy</td><td>Maximise récompense + entropie</td></tr>
+    </table>
+  </div>
+  <div class="callout callout-info">
+    <div class="callout-title">Quel algorithme choisir ?</div>
+    <p>Jeux vidéo (actions discrètes) → Double/Dueling DQN ou PPO.<br>
+    Robotique (actions continues) → PPO, SAC ou TD3.<br>
+    Débutant ou recherche de robustesse → PPO est recommandé.</p>
+  </div>
+  <div class="nav-footer"><button class="nav-btn" onclick="prev()">← Précédent</button><button class="nav-btn" onclick="next()">Suivant →</button><span class="section-info">Section 4 / 7</span></div>
+</div>
+
+<!-- SECTION 5 : DOUBLE, DUELING, PER -->
+<div class="section" id="s4">
+  <div class="chapter-header">
+    <div class="chapter-tag">Améliorations incrémentales</div>
+    <h1>Double DQN, Dueling DQN, Prioritized Experience Replay</h1>
+    <p class="chapter-subtitle">Trois astuces qui rendent DQN plus précis, plus intelligent et plus efficace.</p>
+  </div>
+  <h2>Double DQN : éliminer la sur-estimation</h2>
+  <p>Le DQN original utilise la même Q-network pour choisir l'action et évaluer sa valeur. Cela entraîne une sur-estimation systématique. Double DQN sépare les rôles : le réseau en ligne choisit l'action, le réseau cible l'évalue.</p>
+  <div class="formula-box"><div class="formula">y = r + gamma * Q_target(s', argmax Q_online(s', a'))</div></div>
+  <h2>Dueling DQN : valeur de l'état + avantage</h2>
+  <p>Dans certains états, toutes les actions se valent (par exemple face à un mur). Dueling DQN sépare le réseau en deux flux : V(s) (valeur de l'état) et A(s,a) (avantage de chaque action). Puis Q(s,a) = V(s) + (A(s,a) - moyenne(A)). Cela accélère l'apprentissage dans les états indifférents.</p>
+  <h2>Prioritized Experience Replay (PER)</h2>
+  <p>Toutes les expériences n'ont pas la même importance. Celles avec une erreur de prédiction (TD-error) élevée sont plus informatives. PER les échantillonne plus souvent, comme un étudiant qui révise ses erreurs plutôt que ses réussites. L'apprentissage est accéléré de 2 à 3 fois.</p>
+  <div class="callout callout-tip">
+    <div class="callout-title">Résultat</div>
+    <p>Ces trois améliorations combinées forment Rainbow DQN, l'état de l'art des méthodes value-based.</p>
+  </div>
+  <div class="nav-footer"><button class="nav-btn" onclick="prev()">← Précédent</button><button class="nav-btn" onclick="next()">Suivant →</button><span class="section-info">Section 5 / 7</span></div>
+</div>
+
+<!-- SECTION 6 : POLICY GRADIENT & ACTOR-CRITIC -->
+<div class="section" id="s5">
+  <div class="chapter-header">
+    <div class="chapter-tag">Changement de paradigme</div>
+    <h1>Policy Gradient : apprendre la politique directement</h1>
+    <p class="chapter-subtitle">Et si on oubliait les Q-values et qu'on apprenait simplement quelle action choisir ?</p>
+  </div>
+  <p>Les méthodes value-based (DQN) excellent pour les actions discrètes, mais peinent en environnement continu (exemple : angle d'un bras robotique). Les policy gradient apprennent une distribution de probabilités sur les actions. L'idée est de renforcer les actions qui mènent à de bonnes récompenses.</p>
+  <div class="formula-box"><div class="formula">nabla_theta J(theta) = E[ nabla log pi_theta(a|s) * G_t ]</div><div class="formula-label">G_t = retour cumulé à partir de t</div></div>
+  <h2>REINFORCE : l'ancêtre simple mais bruité</h2>
+  <p>On attend la fin d'un épisode complet, on calcule G_t pour chaque instant, puis on met à jour la politique. Le problème : la variance est élevée (un coup chanceux peut tout fausser).</p>
+  <h2>Actor-Critic : le professeur corrige l'élève</h2>
+  <p>On ajoute un Critique (un réseau de valeur V(s)) pour estimer si une action est meilleure que la moyenne. L'avantage A(s,a) = r + gamma V(s') - V(s) remplace G_t, ce qui réduit considérablement la variance. L'Acteur (la politique) progresse plus sereinement.</p>
+  <div class="callout callout-info">
+    <div class="callout-title">Analogie</div>
+    <p>L'Acteur joue une scène, le Critique lui donne une note après chaque action. Pas besoin d'attendre la fin de la pièce pour savoir si c'était bien. Résultat : apprentissage plus rapide et plus stable.</p>
+  </div>
+  <div class="nav-footer"><button class="nav-btn" onclick="prev()">← Précédent</button><button class="nav-btn" onclick="next()">Suivant →</button><span class="section-info">Section 6 / 7</span></div>
+</div>
+
+<!-- SECTION 7 : PPO & TRPO -->
+<div class="section" id="s6">
+  <div class="chapter-header">
+    <div class="chapter-tag">Algorithmes robustes de pointe</div>
+    <h1>PPO & TRPO : la force tranquille du Policy Gradient</h1>
+    <p class="chapter-subtitle">Plus jamais de "catastrophe du gradient" – ces algorithmes changent la politique par petits pas sécurisés.</p>
+  </div>
+  <p>Le problème des méthodes Actor-Critic classiques : parfois un pas de gradient trop grand détruit la politique (l'agent se met à jouer aléatoirement et ne s'en remet jamais). TRPO et PPO empêchent cela en limitant la divergence entre l'ancienne et la nouvelle politique.</p>
+  <h2>TRPO (Trust Region Policy Optimization)</h2>
+  <p>TRPO ajoute une contrainte explicite : la distance (divergence KL) entre pi_old et pi_new doit rester inférieure à un seuil delta. C'est mathématiquement élégant, mais lourd à implémenter (gradient conjugué, recherche linéaire).</p>
+  <h2>PPO (Proximal Policy Optimization) – l'étoile montante</h2>
+  <p>PPO remplace la contrainte par un clipping dans la fonction objectif. Si le ratio r(theta) = pi_new(a|s) / pi_old(a|s) s'éloigne trop de 1, on le coupe. Simple, efficace, stable. PPO est aujourd'hui l'algorithme de référence pour la plupart des problèmes (utilisé dans le RLHF de ChatGPT).</p>
+  <div class="formula-box"><div class="formula">L_CLIP(theta) = E[ min(r * A, clip(r, 1-epsilon, 1+epsilon) * A) ]</div><div class="formula-label">epsilon = 0.2 typiquement</div></div>
+  <div class="callout callout-tip">
+    <div class="callout-title">Conseil pratique</div>
+    <p>Commencez toujours par PPO. Il est robuste, bien documenté, et fonctionne sur presque tous les environnements (jeux, robotique, optimisation de prompts). TRPO est plus théorique, sa complexité n'en vaut la peine que dans des cas très spécifiques.</p>
+  </div>
+  <div style="background:rgba(30,64,175,.08);border-radius:20px;padding:24px;margin:24px 0">
+    <h3 style="margin-top:0">Synthèse du chapitre</h3>
+    <ul style="margin-bottom:0">
+      <li>Deep RL = RL + réseaux de neurones → généralisation</li>
+      <li>DQN = replay buffer + target network → stabilité</li>
+      <li>Double DQN / Dueling DQN / PER → précision et rapidité</li>
+      <li>Policy Gradient → actions continues, politique directe</li>
+      <li>Actor-Critic → variance réduite grâce à un critique</li>
+      <li>PPO = clipping → algorithme de référence pour 95% des projets</li>
+    </ul>
+  </div>
+  <div class="nav-footer"><button class="nav-btn" onclick="prev()">← Précédent</button><button class="nav-btn" disabled>Suivant →</button><span class="section-info">Section 7 / 7</span></div>
+</div>
+
+</div>
+</div>
+
+<script>
+let cur = 0;
+const N = 7;
+
+function goTo(i) {
+  document.getElementById('s'+cur).classList.remove('active');
+  document.getElementById('nav'+cur).classList.remove('active');
+  cur = i;
+  document.getElementById('s'+cur).classList.add('active');
+  document.getElementById('nav'+cur).classList.add('active');
+  document.getElementById('prog').style.width = Math.round((cur+1)/N*100)+'%';
+  document.getElementById('main').scrollTop = 0;
+}
+
+function prev() { if(cur>0) goTo(cur-1); }
+function next() { if(cur<N-1) goTo(cur+1); }
+
+window.goTo = goTo;
+window.prev = prev;
+window.next = next;
+
+// Gestion du thème
+const btnLight = document.getElementById('btn-light');
+const btnDark = document.getElementById('btn-dark');
+const body = document.body;
+
+function setTheme(theme) {
+  if (theme === 'dark') {
+    body.classList.remove('theme-light');
+    body.classList.add('theme-dark');
+    btnDark.classList.add('active');
+    btnLight.classList.remove('active');
+    localStorage.setItem('drl-theme', 'dark');
+  } else {
+    body.classList.remove('theme-dark');
+    body.classList.add('theme-light');
+    btnLight.classList.add('active');
+    btnDark.classList.remove('active');
+    localStorage.setItem('drl-theme', 'light');
+  }
+}
+
+btnLight.addEventListener('click', () => setTheme('light'));
+btnDark.addEventListener('click', () => setTheme('dark'));
+
+// Charger le thème sauvegardé
+const savedTheme = localStorage.getItem('drl-theme');
+if (savedTheme === 'dark') {
+  setTheme('dark');
+} else {
+  setTheme('light'); // par défaut
+}
+
+goTo(0);
+</script>
+</body>
+</html>
